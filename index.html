@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fake API Users Table</title>
+
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
+
+:root{
+  --white:#fff;
+  --darkblue:#1b4965;
+  --lightblue:#edf2f4;
+}
+
+*{
+  padding:0;
+  margin:0;
+  box-sizing:border-box;
+}
+
+body{
+  margin:50px 0 120px;
+  font-family:"Noto Sans",sans-serif;
+}
+
+.container{
+  max-width:1500px;
+  padding:0 15px;
+  margin:auto;
+}
+
+h1{
+  font-size:1.5em;
+}
+
+#loading{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  margin:60px 0;
+  gap:15px;
+}
+
+.loader{
+  width:60px;
+  height:60px;
+  border:6px solid #dbe7ee;
+  border-top:6px solid var(--darkblue);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+.loading-text{
+  font-size:15px;
+  color:var(--darkblue);
+  font-weight:700;
+}
+
+.table-wrapper{
+  overflow-x:auto;
+  display:none;
+}
+
+.table-wrapper::-webkit-scrollbar{
+  height:8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb{
+  background:var(--darkblue);
+  border-radius:40px;
+}
+
+.table-wrapper::-webkit-scrollbar-track{
+  background:var(--white);
+  border-radius:40px;
+}
+
+.table-wrapper table{
+  margin:50px 0 20px;
+  border-collapse:collapse;
+  text-align:center;
+  width:100%;
+}
+
+.table-wrapper table th,
+.table-wrapper table td{
+  padding:10px;
+  min-width:120px;
+}
+
+.table-wrapper table th{
+  color:var(--white);
+  background:var(--darkblue);
+}
+
+.table-wrapper table tbody tr:nth-of-type(even) > *{
+  background:var(--lightblue);
+}
+
+.table-wrapper table td a{
+  color:var(--darkblue);
+  font-weight:700;
+  text-decoration:none;
+}
+
+.table-wrapper table td a:hover{
+  text-decoration:underline;
+}
+
+.table-credits{
+  font-size:12px;
+  margin-top:10px;
+  display:none;
+}
+
+#errorMessage{
+  display:none;
+  margin-top:20px;
+  color:#b00020;
+  font-weight:700;
+  text-align:center;
+}
+
+footer{
+  text-align:center;
+  margin-top:30px;
+  font-size:14px;
+  color:#333;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Fake API Users Information</h1>
+
+  <div id="loading">
+    <div class="loader"></div>
+    <div class="loading-text">Loading user data...</div>
+  </div>
+
+  <div class="table-wrapper" id="tableWrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Zipcode</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Phone</th>
+          <th>Website</th>
+          <th>Company</th>
+          <th>Catch Phrase</th>
+          <th>BS</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+  </div>
+
+  <p class="table-credits" id="tableCredits">
+    Data retrieved from
+    <a href="https://jsonplaceholder.typicode.com/users" target="_blank">JSONPlaceholder Fake API</a>
+  </p>
+
+  <p id="errorMessage">Failed to load data. Please try again.</p>
+</div>
+
+<footer>
+  Copyright © Activity 12 MSIT114
+</footer>
+
+<script>
+const myData = {
+  id: 11,
+  firstname: "Hex Allain",
+  lastname: "Guirigay",
+  username: "SkyXD23",
+  email: "hexallain.guirigay@nmsc.edu.ph",
+  phone: "0965729193",
+  website: "https://github.com/HexAllain-Guirigay-NMSC/",
+  address: {
+    street: "Patag",
+    suite: "Suite 302",
+    city: "Pagadian City",
+    zipcode: "7016",
+    geo: {
+      lat: "7.840995",
+      lng: "123.428285"
+    }
+  },
+  company: {
+    name: "Schools Division Office of Zamboanga del Sur",
+    catchPhrase: "SuresaSur!",
+    bs: "Empowering education through innovation and digital service"
+  },
+  mapLink: "https://www.google.com/maps/place/DepEd+SDO+Zamboanga+del+Sur/@7.8471307,123.4291773,18.71z/data=!4m12!1m5!3m4!2zN8KwNTAnMjcuNiJOIDEyM8KwMjUnNDEuOCJF!8m2!3d7.841!4d123.4282778!3m5!1s0x325417fb2377495d:0x28d9ed092125fe37!8m2!3d7.8476486!4d123.4301431!16s%2Fg%2F11cnc_1hvj?entry=ttu&g_ep=EgoyMDI2MDMwNS4wIKXMDSoASAFQAw%3D%3D"
+};
+
+const table = document.getElementById("userTable");
+const loading = document.getElementById("loading");
+const tableWrapper = document.getElementById("tableWrapper");
+const tableCredits = document.getElementById("tableCredits");
+const errorMessage = document.getElementById("errorMessage");
+
+function createRow(id, firstname, lastname, username, email, zipcode, lat, lng, phone, website, company, catchPhrase, bs, mapLink){
+  return `
+    <tr>
+      <td>${id}</td>
+      <td>${firstname}</td>
+      <td>${lastname}</td>
+      <td>${username}</td>
+      <td>${email}</td>
+      <td>${zipcode}</td>
+      <td>${lat}</td>
+      <td>${lng}</td>
+      <td>${phone}</td>
+      <td><a href="${website}" target="_blank">${website}</a></td>
+      <td>${company}</td>
+      <td>${catchPhrase}</td>
+      <td>${bs}</td>
+      <td><a href="${mapLink}" target="_blank">View Location</a></td>
+    </tr>
+  `;
+}
+
+fetch("https://jsonplaceholder.typicode.com/users")
+.then(response => response.json())
+.then(data => {
+
+  let allRows = "";
+
+  data.forEach(user => {
+    const names = user.name.trim().split(" ");
+    const firstName = names[0];
+    const lastName = names.slice(1).join(" ");
+    const lat = user.address.geo.lat;
+    const lng = user.address.geo.lng;
+    const mapLink = `https://www.google.com/maps/@${lat},${lng},15z`;
+
+    allRows += createRow(
+      user.id,
+      firstName,
+      lastName,
+      user.username,
+      user.email,
+      user.address.zipcode,
+      lat,
+      lng,
+      user.phone,
+      "http://" + user.website,
+      user.company.name,
+      user.company.catchPhrase,
+      user.company.bs,
+      mapLink
+    );
+  });
+
+  allRows += createRow(
+    myData.id,
+    myData.firstname,
+    myData.lastname,
+    myData.username,
+    myData.email,
+    myData.address.zipcode,
+    myData.address.geo.lat,
+    myData.address.geo.lng,
+    myData.phone,
+    myData.website,
+    myData.company.name,
+    myData.company.catchPhrase,
+    myData.company.bs,
+    myData.mapLink
+  );
+
+  table.innerHTML = allRows;
+
+  loading.style.display = "none";
+  tableWrapper.style.display = "block";
+  tableCredits.style.display = "block";
+})
+.catch(error => {
+  loading.style.display = "none";
+  errorMessage.style.display = "block";
+  console.log("Error fetching data:", error);
+});
+</script>
+
+</body>
+</html>
